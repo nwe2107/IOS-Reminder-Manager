@@ -168,21 +168,34 @@ export default {
     }
   },
   
-  async getAllDocuments(collection, whereConditions = []) {
+  async getAllDocuments(collection, whereConditions = [], orderBy = [], limit = null) {
     try {
       const db = await this.getDb();
       let query = db.collection(collection);
-      
-      // Apply where conditions if provided
-      whereConditions.forEach(condition => {
+  
+      for (const condition of whereConditions) {
         query = query.where(condition.field, condition.operator, condition.value);
-      });
-      
+      }
+  
+      for (const order of orderBy) {
+        query = query.orderBy(order.field, order.direction);
+      }
+  
+      if (limit !== null) {
+        query = query.limit(limit);
+      }
+  
       const snapshot = await query.get();
-      return snapshot.docs.map(doc => doc.data());
+      const results = [];
+  
+      snapshot.forEach(doc => {
+        results.push({ id: doc.id, ...doc.data() });
+      });
+  
+      return results;
     } catch (error) {
-      console.error(`Error getting all documents in ${collection}:`, error);
-      throw error; // Re-throw to be caught by the route handler
+      console.error(`Error getting documents from ${collection}:`, error);
+      throw error;
     }
   }
 };

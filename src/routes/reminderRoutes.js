@@ -108,7 +108,7 @@ router.get('/list/:listId', async (req, res) => {
   }
 });
 
-// Get inactive reminders from list_group
+// Get inactive reminders from list_group  // example call: GET /reminders/inactive/by-group/כלליות
 router.get('/inactive/by-group/:groupName', async (req, res) => {
   try {
     const reminders = await database.getAllDocuments('reminders', [
@@ -121,6 +121,21 @@ router.get('/inactive/by-group/:groupName', async (req, res) => {
     res.status(500).json({ error: 'Failed to get inactive reminders by group' });
   }
 });
+
+// Get inactive reminders from a list_name // example call: GET /reminder/inactive/by-list/כללי
+router.get('/inactive/by-list/:listName', async (req, res) => {
+  try {
+    const reminders = await database.getAllDocuments('reminders', [
+      { field: 'is_active', operator: '==', value: false },
+      { field: 'list_name', operator: '==', value: req.params.listName }
+    ]);
+    res.json(reminders);
+  } catch (error) {
+    console.error('Error getting inactive reminders by list:', error);
+    res.status(500).json({ error: 'Failed to get inactive reminders by list' });
+  }
+});
+
 
 // Create a new reminder
 router.post('/', async (req, res) => {
